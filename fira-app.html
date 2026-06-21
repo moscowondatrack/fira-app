@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fira — финансовый штаб</title>
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0a0a14; --bg:#f4f4f8; --white:#fff; --card:#fff;
+  --violet:#6b5ff8; --violet-l:rgba(107,95,248,0.1);
+  --mint:#00c896; --mint-l:rgba(0,200,150,0.1);
+  --red:#f5566f; --red-l:rgba(245,86,111,0.1);
+  --amber:#f5a623; --amber-l:rgba(245,166,35,0.1);
+  --muted:#8a8aa3; --border:#e6e6f0; --surface:#fafafc;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:230px;background:var(--white);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:20}
+.logo{font-family:'Manrope';font-size:24px;font-weight:800;color:var(--violet);padding:0 12px 28px;letter-spacing:-0.5px}
+.logo span{color:var(--ink)}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:3px;border:none;background:none;width:100%;text-align:left;font-family:inherit}
+.nav-item:hover{background:var(--surface);color:var(--ink)}
+.nav-item.active{background:var(--violet-l);color:var(--violet)}
+.nav-item .ico{font-size:17px;width:20px;text-align:center}
+.sidebar-foot{margin-top:auto;padding:12px;font-size:11px;color:var(--muted)}
+.year-badge{background:var(--surface);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--muted);margin-bottom:8px}
+.year-badge b{color:var(--ink);font-size:18px;font-family:'Manrope';display:block;margin-top:2px}
+
+/* MAIN */
+.main{flex:1;margin-left:230px;padding:28px 36px}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.page-title{font-family:'Manrope';font-size:26px;font-weight:800;letter-spacing:-0.7px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:3px}
+.btn{border:none;border-radius:12px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--violet);color:#fff}
+.btn-primary:hover{background:#5a4fe5;transform:translateY(-1px);box-shadow:0 6px 18px rgba(107,95,248,.3)}
+.btn-ghost{background:var(--white);color:var(--ink);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--violet);color:var(--violet)}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border-radius:18px;padding:18px 20px;border:1px solid var(--border)}
+.kpi-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.kpi-label{font-size:12px;color:var(--muted);font-weight:600}
+.kpi-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.kpi-value{font-family:'Manrope';font-size:24px;font-weight:800;letter-spacing:-1px}
+.kpi-delta{font-size:12px;font-weight:600;margin-top:4px}
+
+/* CARD */
+.card{background:var(--card);border-radius:20px;border:1px solid var(--border);padding:24px;margin-bottom:20px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.card-title{font-family:'Manrope';font-size:16px;font-weight:800}
+.card-hint{font-size:12px;color:var(--muted)}
+
+/* YEAR TABLE */
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+th,td{padding:10px 12px;text-align:right;white-space:nowrap}
+th{background:var(--surface);font-weight:700;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.5px;position:sticky;top:0}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--white);z-index:1;font-weight:600;min-width:150px}
+th:first-child{z-index:2;background:var(--surface)}
+tr:not(:last-child) td{border-bottom:1px solid var(--border)}
+td.editable{cursor:pointer;transition:background .12s}
+td.editable:hover{background:var(--violet-l)}
+td input{width:80px;border:1.5px solid var(--violet);border-radius:6px;padding:4px 6px;font-size:13px;text-align:right;outline:none;font-family:inherit}
+.row-group{background:var(--surface);font-weight:800;color:var(--ink)}
+.row-group td{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+.row-total td{font-weight:800;background:var(--surface)}
+.cell-pos{color:var(--mint)}
+.cell-neg{color:var(--red)}
+.cell-zero{color:var(--border)}
+
+/* MONTH DETAIL */
+.month-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.month-chip{padding:7px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.month-chip:hover{border-color:var(--violet)}
+.month-chip.active{background:var(--violet);color:#fff;border-color:var(--violet)}
+
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.field-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.field-row:last-child{border-bottom:none}
+.field-lbl{font-size:13px;color:var(--ink);font-weight:500;display:flex;align-items:center;gap:8px}
+.field-inp{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-size:14px;font-weight:700;color:var(--ink);text-align:right;width:120px;outline:none;font-family:inherit;transition:border-color .15s}
+.field-inp:focus{border-color:var(--violet);background:#fff}
+.detail-total{display:flex;justify-content:space-between;padding-top:14px;margin-top:8px;border-top:2px solid var(--border);font-weight:800;font-size:15px}
+
+/* PROGRESS BARS (analytics) */
+.bar-row{margin-bottom:14px}
+.bar-head{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px}
+.bar-name{color:var(--ink);font-weight:600}
+.bar-val{font-weight:700}
+.bar-bg{height:8px;background:var(--surface);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .5s}
+
+/* CHART */
+.chart-wrap{position:relative;height:240px;margin-top:10px}
+svg{width:100%;height:100%;overflow:visible}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,20,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--white);border-radius:22px;padding:28px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto}
+.modal-title{font-family:'Manrope';font-size:19px;font-weight:800;margin-bottom:20px}
+.cat-pick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.cat-opt{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:all .12s;font-size:10px;font-weight:600;color:var(--muted);text-align:center;line-height:1.3}
+.cat-opt .ce{font-size:20px}
+.cat-opt.sel{background:var(--violet-l);border-color:var(--violet);color:var(--violet)}
+.amount-big{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:16px;font-size:26px;font-weight:800;text-align:center;outline:none;font-family:'Manrope';margin-bottom:8px}
+.amount-big:focus{border-color:var(--violet)}
+.modal-actions{display:flex;gap:10px;margin-top:8px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 24px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* MOBILE */
+.menu-btn{display:none}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);transition:transform .25s}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:20px}
+  .menu-btn{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:18px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .detail-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){.kpi-grid{grid-template-columns:1fr 1fr}}
+
+.empty{text-align:center;padding:40px;color:var(--muted)}
+.empty-ico{font-size:42px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">fira<span>.</span></div>
+    <div class="year-badge">Финансовый год<b>2026</b></div>
+    <button class="nav-item active" onclick="nav('year',this)"><span class="ico">📅</span> Год целиком</button>
+    <button class="nav-item" onclick="nav('month',this)"><span class="ico">📋</span> По месяцам</button>
+    <button class="nav-item" onclick="nav('analytics',this)"><span class="ico">📊</span> Аналитика</button>
+    <button class="nav-item" onclick="nav('goals',this)"><span class="ico">🎯</span> Цели</button>
+    <div class="sidebar-foot">Данные хранятся в браузере.<br>Облако — скоро.</div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="page-title" id="page-title">Год целиком</div>
+          <div class="page-sub" id="page-sub">Обзор доходов, расходов и накоплений за 2026</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Добавить трату</button>
+    </div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">Добавить трату</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Месяц</div>
+    <select id="modal-month" class="field-inp" style="width:100%;text-align:left;margin-bottom:16px"></select>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Категория</div>
+    <div class="cat-pick" id="modal-cats"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">Сумма</div>
+    <input class="amount-big" id="modal-amount" type="number" inputmode="decimal" placeholder="0 ₽">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeAddModal()">Отмена</button>
+      <button class="btn btn-primary" style="flex:2" onclick="submitExpense()">Записать</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════ ДАННЫЕ ════════
+// Ключи берутся из приватного config.js (не загружается на GitHub)
+const APPS_SCRIPT_URL=(window.FIRA_CONFIG&&window.FIRA_CONFIG.APPS_SCRIPT_URL)||'';
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MSHORT=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+const EXP_CATS=[
+  {n:'Покупка продуктов',e:'🛒',p:20000},{n:'Фастфуд',e:'🍔',p:5000},
+  {n:'Питание (кафе)',e:'🍽',p:7000},{n:'Кофе',e:'☕',p:3000},
+  {n:'Бары/рестораны',e:'🍷',p:5000},{n:'Спорт и красота',e:'💪',p:3000},
+  {n:'Аптеки',e:'💊',p:1000},{n:'Одежда и обувь',e:'👟',p:3000},
+  {n:'Образование',e:'📚',p:2000},{n:'АМ, КБ',e:'🏦',p:2000},
+  {n:'Развлечения',e:'🎮',p:3000},{n:'Животные',e:'🐾',p:2000},
+  {n:'Путешествия',e:'✈️',p:5000},{n:'Автомобиль',e:'🚗',p:5000},
+  {n:'Мотоцикл',e:'🏍',p:2000},{n:'АЗС',e:'⛽',p:5000},
+  {n:'Штрафы',e:'🚨',p:0},{n:'Парковки',e:'🅿️',p:1000},
+  {n:'Транспорт',e:'🚇',p:1500},{n:'Связь/интернет',e:'📱',p:1500},
+  {n:'Маркетплейсы',e:'📦',p:3000},{n:'Хобби',e:'🎯',p:3000},
+  {n:'Бизнес',e:'💼',p:0},{n:'Ипотека',e:'🏠',p:80000},
+  {n:'ЖКХ',e:'💡',p:7000},{n:'Ремонт квартиры',e:'🔨',p:3000},
+  {n:'Зарплата жены',e:'👩',p:0},{n:'Беременность/ребёнок',e:'👶',p:25000},
+  {n:'Непредвиденные',e:'⚡',p:3000},{n:'Нежелательные',e:'🚫',p:0},
+];
+const INC_CATS=['Зарплата','Доп. доход','А','Из вклада'];
+const SAV_CATS=['Отложил на ПДС','Накопит. счёт','Инвестировал'];
+
+// Соответствие категорий приложения → точные названия в таблице (журнал)
+const SHEET_CAT_MAP={
+  'Покупка продуктов':'Супермаркеты', // объединённая → пишем как Супермаркеты
+  'Фастфуд':'Фастфуд','Питание (кафе)':'Питание (обед, кафе)','Кофе':'Кофе',
+  'Бары/рестораны':'Бары и рестораны','Спорт и красота':'Спорт и красота',
+  'Аптеки':'Аптеки и здоровье','Одежда и обувь':'Одежда, обувь и аксессуары',
+  'Образование':'Образование','АМ, КБ':'АМ, КБ','Развлечения':'Развлечения (в т.ч. в интернете)',
+  'Животные':'Животные','Путешествия':'Путешествия и отдых','Автомобиль':'Автомобиль',
+  'Мотоцикл':'Мотоцикл','АЗС':'АЗС','Штрафы':'Штрафы','Парковки':'Парковки',
+  'Транспорт':'Общественный транспорт','Связь/интернет':'Связь и интернет',
+  'Маркетплейсы':'Покупки на маркетплейсах','Хобби':'Хобби','Бизнес':'Бизнес',
+  'Ипотека':'Квартира (Ипотека, рассрочка)','ЖКХ':'ЖКХ',
+  'Ремонт квартиры':'Ремонт и обустройство квартиры','Зарплата жены':'Зарплата жены',
+  'Беременность/ребёнок':'Беременность и ребёнок','Непредвиденные':'Непредвиденные покупки и подарки',
+  'Нежелательные':'Нежелательные траты + кредиты'
+};
+const SHEET_INC_MAP={'Зарплата':'Зарплата','Доп. доход':'Дополнительный доход','А':'А','Из вклада':'Дополнительный доход'};
+const SHEET_SAV_MAP={'Отложил на ПДС':'Отложил на ПДС','Накопит. счёт':'Отложил на накопительный счет','Инвестировал':'Инвестировал'};
+
+
+// ════════ STATE ════════
+let page='year', activeMonth=6, modalCat=null;
+let state={exp:{},inc:{},sav:{},dep:{}};
+
+function loadState(){try{const r=localStorage.getItem('fira_app_v1');if(r)state=JSON.parse(r)}catch(e){}}
+function saveState(){try{localStorage.setItem('fira_app_v1',JSON.stringify(state))}catch(e){}}
+
+// helpers
+function expM(m){return state.exp[m]||{}}
+function incM(m){return state.inc[m]||{}}
+function savM(m){return state.sav[m]||{}}
+function sumObj(o){return Object.values(o).reduce((s,v)=>s+(+v||0),0)}
+function totExp(m){return sumObj(expM(m))}
+function totInc(m){return sumObj(incM(m))}
+function totSav(m){return sumObj(savM(m))}
+function balance(m){return totInc(m)-totExp(m)-totSav(m)}
+
+function fmt(n){n=+n||0;const a=Math.abs(n);let s;if(a>=1e6)s=(a/1e6).toFixed(2)+'M';else if(a>=1e3)s=(a/1e3).toFixed(0)+'k';else s=a.toLocaleString('ru-RU');return(n<0?'−':'')+s}
+function fmtF(n){n=+n||0;return(n<0?'−':'')+Math.abs(n).toLocaleString('ru-RU')+' ₽'}
+
+// ════════ NAV ════════
+function nav(p,el){
+  page=p;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.getElementById('sidebar').classList.remove('open');
+  const titles={year:['Год целиком','Обзор за 2026'],month:['По месяцам','Детальный ввод данных'],analytics:['Аналитика','Тренды и структура расходов'],goals:['Цели','Ипотека, авто, накопления']};
+  document.getElementById('page-title').textContent=titles[p][0];
+  document.getElementById('page-sub').textContent=titles[p][1];
+  render();
+}
+
+// ════════ RENDER ════════
+function render(){
+  const el=document.getElementById('content');
+  if(page==='year')el.innerHTML=renderYear();
+  if(page==='month')el.innerHTML=renderMonth();
+  if(page==='analytics')el.innerHTML=renderAnalytics();
+  if(page==='goals')el.innerHTML=renderGoals();
+}
+
+// ── YEAR VIEW ──
+function renderYear(){
+  let yExp=0,yInc=0,ySav=0;
+  for(let m=0;m<12;m++){const k=`2026-${String(m+1).padStart(2,'0')}`;yExp+=totExp(k);yInc+=totInc(k);ySav+=totSav(k)}
+  const yBal=yInc-yExp-ySav;
+
+  const kpis=`
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Доходы за год</span><span class="kpi-ico" style="background:var(--mint-l)">📈</span></div><div class="kpi-value" style="color:var(--mint)">${fmtF(yInc)}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Расходы за год</span><span class="kpi-ico" style="background:var(--red-l)">📉</span></div><div class="kpi-value" style="color:var(--red)">${fmtF(yExp)}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Накоплено</span><span class="kpi-ico" style="background:var(--violet-l)">🏦</span></div><div class="kpi-value" style="color:var(--violet)">${fmtF(ySav)}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Баланс</span><span class="kpi-ico" style="background:var(--amber-l)">⚖️</span></div><div class="kpi-value" style="color:${yBal>=0?'var(--mint)':'var(--red)'}">${fmtF(yBal)}</div></div>
+  </div>`;
+
+  // Build table: rows = income summary, expense summary, savings, balance per month
+  let head='<th>Показатель</th>'+MONTHS.map((m,i)=>`<th>${MSHORT[i]}</th>`).join('')+'<th>Год</th>';
+
+  const mkRow=(label,fn,cls='')=>{
+    let sum=0;
+    const cells=MONTHS.map((m,i)=>{
+      const k=`2026-${String(i+1).padStart(2,'0')}`;
+      const v=fn(k);sum+=v;
+      const c=v>0?(cls||''):'cell-zero';
+      return `<td class="${c}">${v?fmt(v):'·'}</td>`;
+    }).join('');
+    return `<tr class="${cls==='row-total'?'row-total':''}"><td>${label}</td>${cells}<td class="${cls}"><b>${fmt(sum)}</b></td></tr>`;
+  };
+
+  const rows=`
+    <tr class="row-group"><td>Доходы</td>${MONTHS.map(()=>'<td></td>').join('')}<td></td></tr>
+    ${mkRow('Все доходы',k=>totInc(k),'cell-pos')}
+    <tr class="row-group"><td>Расходы</td>${MONTHS.map(()=>'<td></td>').join('')}<td></td></tr>
+    ${mkRow('Все расходы',k=>totExp(k),'cell-neg')}
+    <tr class="row-group"><td>Накопления</td>${MONTHS.map(()=>'<td></td>').join('')}<td></td></tr>
+    ${mkRow('Отложено',k=>totSav(k),'cell-pos')}
+    ${mkRow('Баланс месяца',k=>balance(k),'row-total')}
+  `;
+
+  return kpis+`
+  <div class="card">
+    <div class="card-head"><div class="card-title">Сводка по месяцам</div><div class="card-hint">Клик на «По месяцам» для детального ввода</div></div>
+    <div class="table-wrap"><table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Динамика года</div></div>
+    ${renderYearChart()}
+  </div>`;
+}
+
+function renderYearChart(){
+  const W=900,H=240,pad=30;
+  const inc=[],exp=[];
+  for(let m=0;m<12;m++){const k=`2026-${String(m+1).padStart(2,'0')}`;inc.push(totInc(k));exp.push(totExp(k))}
+  const max=Math.max(...inc,...exp,1);
+  const x=i=>pad+(i*(W-2*pad)/11);
+  const y=v=>H-pad-(v/max)*(H-2*pad);
+  const line=(arr,col)=>{
+    const pts=arr.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+    const dots=arr.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="3.5" fill="${col}"/>`).join('');
+    return `<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2.5"/>${dots}`;
+  };
+  const labels=MSHORT.map((m,i)=>`<text x="${x(i)}" y="${H-8}" font-size="10" fill="#8a8aa3" text-anchor="middle">${m}</text>`).join('');
+  return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}">
+    ${line(inc,'#00c896')}${line(exp,'#f5566f')}${labels}
+  </svg></div>
+  <div style="display:flex;gap:20px;justify-content:center;margin-top:8px;font-size:12px">
+    <span style="color:var(--mint)">● Доходы</span><span style="color:var(--red)">● Расходы</span>
+  </div>`;
+}
+
+// ── MONTH VIEW ──
+function renderMonth(){
+  const chips=MONTHS.map((m,i)=>`<button class="month-chip ${i===activeMonth?'active':''}" onclick="selMonth(${i})">${MSHORT[i]}</button>`).join('');
+  const k=`2026-${String(activeMonth+1).padStart(2,'0')}`;
+  const exp=expM(k),inc=incM(k),sav=savM(k);
+
+  const expFields=EXP_CATS.map(c=>`
+    <div class="field-row">
+      <span class="field-lbl">${c.e} ${c.n}</span>
+      <input class="field-inp" type="number" inputmode="decimal" placeholder="0" value="${exp[c.n]||''}" onchange="setExp('${k}','${c.n}',this.value)">
+    </div>`).join('');
+
+  const incFields=INC_CATS.map(c=>`
+    <div class="field-row">
+      <span class="field-lbl">${c}</span>
+      <input class="field-inp" type="number" inputmode="decimal" placeholder="0" value="${inc[c]||''}" onchange="setInc('${k}','${c}',this.value)">
+    </div>`).join('');
+
+  const savFields=SAV_CATS.map(c=>`
+    <div class="field-row">
+      <span class="field-lbl">${c}</span>
+      <input class="field-inp" type="number" inputmode="decimal" placeholder="0" value="${sav[c]||''}" onchange="setSav('${k}','${c}',this.value)">
+    </div>`).join('');
+
+  return `
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px">
+    <div class="month-selector" style="margin-bottom:0">${chips}</div>
+    <button class="btn btn-ghost" onclick="syncToSheets()" style="white-space:nowrap">↑ В таблицу</button>
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Доходы</span></div><div class="kpi-value" style="color:var(--mint)">${fmtF(totInc(k))}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Расходы</span></div><div class="kpi-value" style="color:var(--red)">${fmtF(totExp(k))}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Накоплено</span></div><div class="kpi-value" style="color:var(--violet)">${fmtF(totSav(k))}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Баланс</span></div><div class="kpi-value" style="color:${balance(k)>=0?'var(--mint)':'var(--red)'}">${fmtF(balance(k))}</div></div>
+  </div>
+  <div class="detail-grid">
+    <div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📈 Доходы</div></div>
+        ${incFields}
+        <div class="detail-total"><span>Итого</span><span style="color:var(--mint)">${fmtF(totInc(k))}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">🏦 Накопления</div></div>
+        ${savFields}
+        <div class="detail-total"><span>Итого</span><span style="color:var(--violet)">${fmtF(totSav(k))}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">💰 Вклад</div></div>
+        <div class="field-row"><span class="field-lbl">Текущий остаток</span>
+        <input class="field-inp" type="number" placeholder="0" value="${state.dep[k]||''}" onchange="setDep('${k}',this.value)"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">При доходе «Из вклада» уменьшай остаток вручную</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📉 Расходы</div></div>
+      ${expFields}
+      <div class="detail-total"><span>Итого</span><span style="color:var(--red)">${fmtF(totExp(k))}</span></div>
+    </div>
+  </div>`;
+}
+function selMonth(i){activeMonth=i;render()}
+
+// ── ANALYTICS ──
+function renderAnalytics(){
+  // Aggregate expenses by category across year
+  const catTot={};
+  EXP_CATS.forEach(c=>catTot[c.n]=0);
+  for(let m=0;m<12;m++){const k=`2026-${String(m+1).padStart(2,'0')}`;const e=expM(k);for(const cat in e)catTot[cat]=(catTot[cat]||0)+(+e[cat]||0)}
+  const sorted=Object.entries(catTot).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+
+  if(!sorted.length)return `<div class="card"><div class="empty"><div class="empty-ico">📊</div>Пока нет данных для аналитики.<br>Внеси расходы во вкладке «По месяцам»</div></div>`;
+
+  const maxCat=sorted[0][1];
+  const bars=sorted.slice(0,12).map(([cat,v])=>{
+    const c=EXP_CATS.find(x=>x.n===cat);
+    const plan=(c?.p||0)*12;
+    const over=plan>0&&v>plan;
+    return `<div class="bar-row">
+      <div class="bar-head"><span class="bar-name">${c?.e||'•'} ${cat}</span><span class="bar-val" style="color:${over?'var(--red)':'var(--ink)'}">${fmtF(v)}${over?' ⚠️':''}</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${v/maxCat*100}%;background:${over?'var(--red)':'var(--violet)'}"></div></div>
+    </div>`;
+  }).join('');
+
+  // Savings rate
+  let yInc=0,ySav=0;
+  for(let m=0;m<12;m++){const k=`2026-${String(m+1).padStart(2,'0')}`;yInc+=totInc(k);ySav+=totSav(k)}
+  const savRate=yInc>0?(ySav/yInc*100).toFixed(1):0;
+
+  return `
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Норма накопления</span><span class="kpi-ico" style="background:var(--violet-l)">💎</span></div><div class="kpi-value" style="color:var(--violet)">${savRate}%</div><div class="kpi-delta" style="color:var(--muted)">от дохода</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Топ расход</span><span class="kpi-ico" style="background:var(--red-l)">🔥</span></div><div class="kpi-value" style="font-size:17px">${sorted[0][0]}</div><div class="kpi-delta" style="color:var(--red)">${fmtF(sorted[0][1])}</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Категорий</span><span class="kpi-ico" style="background:var(--mint-l)">📂</span></div><div class="kpi-value">${sorted.length}</div><div class="kpi-delta" style="color:var(--muted)">активных</div></div>
+    <div class="kpi"><div class="kpi-top"><span class="kpi-label">Средний расход</span><span class="kpi-ico" style="background:var(--amber-l)">📊</span></div><div class="kpi-value" style="font-size:18px">${fmtF(Math.round(Object.values(catTot).reduce((a,b)=>a+b,0)/12))}</div><div class="kpi-delta" style="color:var(--muted)">в месяц</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">Расходы по категориям за год</div><div class="card-hint">⚠️ = превышен план</div></div>
+    ${bars}
+  </div>`;
+}
+
+// ── GOALS ──
+function renderGoals(){
+  return `
+  <div class="card">
+    <div class="card-head"><div class="card-title">🏠 Ипотека</div><div class="card-hint">Сбербанк · 6% годовых</div></div>
+    <div class="kpi-grid" style="margin-bottom:0">
+      <div class="kpi" style="border:none;padding:8px 0"><div class="kpi-label">Остаток долга</div><div class="kpi-value" style="font-size:20px">8.87 млн ₽</div></div>
+      <div class="kpi" style="border:none;padding:8px 0"><div class="kpi-label">Платёж</div><div class="kpi-value" style="font-size:20px">80 000 ₽</div></div>
+      <div class="kpi" style="border:none;padding:8px 0"><div class="kpi-label">Закроется</div><div class="kpi-value" style="font-size:20px;color:var(--violet)">13.5 лет</div></div>
+      <div class="kpi" style="border:none;padding:8px 0"><div class="kpi-label">Экономия</div><div class="kpi-value" style="font-size:20px;color:var(--mint)">6.1 млн ₽</div></div>
+    </div>
+  </div>
+  <div class="detail-grid">
+    <div class="card">
+      <div class="card-head"><div class="card-title">🚗 Авто / подушка</div></div>
+      <div class="bar-row"><div class="bar-head"><span class="bar-name">Прогресс к 1 млн</span><span class="bar-val">0 ₽</span></div><div class="bar-bg"><div class="bar-fill" style="width:0%;background:var(--mint)"></div></div></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:10px">Откладывай 60 000 ₽/мес → цель за ~17 месяцев</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">📈 ПДС</div></div>
+      <div class="bar-row"><div class="bar-head"><span class="bar-name">Накоплено</span><span class="bar-val">0 ₽</span></div><div class="bar-bg"><div class="bar-fill" style="width:0%;background:var(--amber)"></div></div></div>
+      <div style="font-size:13px;color:var(--muted);margin-top:10px">10 000 ₽/мес · пенсионные накопления</div>
+    </div>
+  </div>
+  <div class="card" style="background:var(--violet-l);border-color:transparent">
+    <div style="font-size:13px;color:var(--violet);font-weight:700;margin-bottom:6px">💡 Совет</div>
+    <div style="font-size:13px;color:var(--ink);line-height:1.6">Цели подтянутся из реальных данных когда подключим облако. Сейчас показаны плановые значения из твоей стратегии.</div>
+  </div>`;
+}
+
+// ════════ SETTERS ════════
+function setExp(k,cat,v){if(!state.exp[k])state.exp[k]={};const n=+v||0;if(n)state.exp[k][cat]=n;else delete state.exp[k][cat];saveState();updateTotalsLive(k)}
+function setInc(k,cat,v){if(!state.inc[k])state.inc[k]={};const n=+v||0;if(n)state.inc[k][cat]=n;else delete state.inc[k][cat];saveState();updateTotalsLive(k)}
+function setSav(k,cat,v){if(!state.sav[k])state.sav[k]={};const n=+v||0;if(n)state.sav[k][cat]=n;else delete state.sav[k][cat];saveState();updateTotalsLive(k)}
+function setDep(k,v){state.dep[k]=+v||0;saveState()}
+function updateTotalsLive(k){if(page==='month')render()}
+
+// ════════ ADD MODAL ════════
+function openAddModal(){
+  const sel=document.getElementById('modal-month');
+  sel.innerHTML=MONTHS.map((m,i)=>`<option value="${i}" ${i===activeMonth?'selected':''}>${m}</option>`).join('');
+  const cats=document.getElementById('modal-cats');
+  cats.innerHTML=EXP_CATS.map(c=>`<div class="cat-opt" data-cat="${c.n}" onclick="pickCat('${c.n}',this)"><span class="ce">${c.e}</span>${c.n}</div>`).join('');
+  modalCat=null;
+  document.getElementById('modal-amount').value='';
+  document.getElementById('add-modal').classList.add('show');
+}
+function closeAddModal(){document.getElementById('add-modal').classList.remove('show')}
+function pickCat(cat,el){
+  modalCat=cat;
+  document.querySelectorAll('.cat-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function submitExpense(){
+  const m=+document.getElementById('modal-month').value;
+  const amt=parseFloat(document.getElementById('modal-amount').value);
+  if(!modalCat){toast('⚠️ Выбери категорию');return}
+  if(!amt||amt<=0){toast('⚠️ Введи сумму');return}
+  const k=`2026-${String(m+1).padStart(2,'0')}`;
+  if(!state.exp[k])state.exp[k]={};
+  state.exp[k][modalCat]=(state.exp[k][modalCat]||0)+amt;
+  saveState();
+  closeAddModal();
+  toast(`✓ ${fmtF(amt)} → ${modalCat}`);
+  render();
+}
+
+
+// ════════ СИНХРОНИЗАЦИЯ С GOOGLE SHEETS ════════
+async function syncToSheets(){
+  if(APPS_SCRIPT_URL.includes('ВСТАВЬ')){toast('⚠️ Сначала вставь URL Apps Script в код');return}
+  const k=`2026-${String(activeMonth+1).padStart(2,'0')}`;
+  const monthNum=activeMonth+1;
+  const dateStr=`2026-${String(monthNum).padStart(2,'0')}-15`;
+
+  // Расходы → журнал (каждая категория = строка)
+  const expItems=[];
+  const exp=expM(k);
+  for(const cat in exp){
+    if(exp[cat]>0)expItems.push({date:dateStr,category:SHEET_CAT_MAP[cat]||cat,amount:exp[cat],comment:'Fira'});
+  }
+  // Доходы → журнал
+  const incItems=[];
+  const inc=incM(k);
+  for(const cat in inc){
+    if(inc[cat]>0)incItems.push({date:dateStr,category:SHEET_INC_MAP[cat]||cat,amount:inc[cat],comment:'Fira'});
+  }
+  // Накопления → прямо в лист 2026
+  const savObj={};
+  const sav=savM(k);
+  for(const cat in sav){
+    if(sav[cat]>0)savObj[SHEET_SAV_MAP[cat]||cat]=sav[cat];
+  }
+
+  toast('⏳ Отправляю в таблицу...');
+  try{
+    const res=await fetch(APPS_SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify({action:'syncMonth',year:2026,month:monthNum,expenses:expItems,income:incItems,savings:savObj})
+    });
+    const data=await res.json();
+    if(data.success)toast('✅ Записано в Google Sheets!');
+    else throw new Error(data.error);
+  }catch(e){toast('❌ Ошибка: '+e.message)}
+}
+
+// ════════ TOAST ════════
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+
+// ════════ INIT ════════
+loadState();
+render();
+</script>
+</body>
+</html>
